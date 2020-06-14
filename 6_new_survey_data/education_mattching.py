@@ -4,7 +4,9 @@ import re
 from collections import defaultdict
 import requests
 import xlwt
+import os
 from bs4 import BeautifulSoup
+
 matched = "yes"
 
 path_to_clean_files = r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data"
@@ -44,15 +46,13 @@ def scraping_web(job_title):
         return BASE_URL + 'jobs/' + modified_title + '/' + str(
             id) + '?source=searchResults#/jobs/' + modified_key + '-jobs'
 
-    # keywords = ["Administration", "Retail", "Sales & Marketing",
-    #             "Accountant", "Social Care"]
 
     keywords = job_title
 
     BASE_URL = "https://www.reed.co.uk/"
 
     count = 0
-    for i in range(5):
+    for i in range(1):
         key = keywords[i]
         key = key.lower()
 
@@ -68,7 +68,7 @@ def scraping_web(job_title):
 
             for job in articles:
                 count +=1
-                print(count)
+
 
                 title = job.find('h3').get_text()[1:-1].lower()
                 id = job.get('id')[10:]
@@ -82,24 +82,20 @@ def scraping_web(job_title):
                 soup2 = BeautifulSoup(response2.content, "html.parser")
                 skills = soup2.select('div.skills  ul li')
                 jd = soup2.select('div.description  span')
-                print(jd)
+
                 if count > 20:
-                    print("here")
+
                     return
                 summary = pd.DataFrame({
-                    # 'Company': companies,
-                    # 'Postition': positions,
                     'Cosine Distances': detail_url,
-                    # 'Keywords': key_list,
+
                     'Job Description': jd
                 })
                 summary.to_csv(
                     r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data\data_collected.csv", mode='a',
                     header=False, index=False, encoding="utf-8")
 
-                # with open(r"jds_csv_files/data.csv", mode='w', encoding='utf-8') as employee_file:
-                #     employee_file.write(str(jd))
-                #     employee_file.write("\n")
+
 
                 if len(jd) > 0:
                     try:
@@ -115,7 +111,7 @@ def mapping(jd):
     result = ["No degree or GCSE"]
     global count
     for i in range(len(arr)):
-            # print(arr[i])
+
         if arr[i].__contains__("degree") or arr[i].__contains__("GCSE"):
 
 
@@ -125,34 +121,43 @@ def mapping(jd):
     return result
 
 
-
+directory = r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\matched_education_files"
 path_to_csv_file = r"C:\Users\krkc6\Desktop\lf_survey_v1.csv"
 df = pd.read_csv(path_to_csv_file)
 for i, a in enumerate(df.iterrows()):
     education = str(a[1]["HIQUL15D"])
     job_title = a[1]["SC102KM"]
-    print(job_title)
-    # if job_title.isnull():
-    #     continue
 
-    #salary = str(a[1]["income_r"])
-    regex = re.compile('[^a-zA-Z0-9]')
-    job_title_cleaned = regex.sub("", str(job_title))
-    scraping_web(job_title_cleaned)
-    f = open(r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data\data_collected.csv", "r",encoding="UTF-8").readlines()
-    for line in f:
-        line = line.strip().replace("\n", "")
-        print(line)
-        print("in writing part")
-        degree_specification = mapping(line)
-        with open(r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\matched_education_files/" + job_title_cleaned, mode='a',encoding='utf-8') as employee_file:
-            employee_file.write(job_title_cleaned)
-            employee_file.write(" | ")
-            employee_file.write(education)
-            employee_file.write(" | ")
-            #employee_file.write(salary)
-            #employee_file.write(" | ")
-            employee_file.write("qualification match  " + matched)
-            employee_file.write(" | ")
-            employee_file.write(str(degree_specification))
-            employee_file.write("\n")
+    if pd.notna(job_title) == True :
+
+        regex = re.compile('[^a-zA-Z0-9]')
+        job_title_cleaned = regex.sub("", str(job_title))
+        for filename in os.listdir(directory):
+            if len(os.listdir(directory)) == 0:
+                scraping_web(job_title_cleaned)
+            elif filename == job_title_cleaned:
+                print("file already exists")
+            else:
+                scraping_web(job_title_cleaned)
+
+
+        f = open(r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data\data_collected.csv",
+                 "r", encoding="UTF-8").readlines()
+        for line in f:
+            line = line.strip().replace("\n", "")
+            degree_specification = mapping(line)
+            with open(
+                    r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\matched_education_files/" + job_title_cleaned,
+                    mode='a', encoding='utf-8') as employee_file:
+                employee_file.write(job_title_cleaned)
+                employee_file.write(" | ")
+                employee_file.write(education)
+                employee_file.write(" | ")
+
+                employee_file.write("qualification match  " + matched)
+                employee_file.write(" | ")
+                employee_file.write(str(degree_specification))
+                employee_file.write("\n")
+
+    else:
+        print("job title is NaN")
