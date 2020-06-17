@@ -6,7 +6,7 @@ import requests
 import xlwt
 from bs4 import BeautifulSoup
 matched = "yes"
-path_to_clean_files = r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data"
+path_to_clean_files = r"6_new_survey_data/scraped_data"
 def remove_files_in_folder():
     import os, shutil
     folder = path_to_clean_files
@@ -95,7 +95,7 @@ def scraping_web(job_title):
                     'Job Description': jd
                 })
                 summary.to_csv(
-                    r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data\data_collected.csv", mode='a',
+                    r"6_new_survey_data/scraped_data/data_collected.csv", mode='a',
                     header=False, index=False, encoding="utf-8")
 
                 # with open(r"jds_csv_files/data.csv", mode='w', encoding='utf-8') as employee_file:
@@ -136,13 +136,13 @@ for i, a in enumerate(df.iterrows()):
     regex = re.compile('[^a-zA-Z0-9]')
     job_title_cleaned = regex.sub("", str(job_title))
     scraping_web(job_title_cleaned)
-    f = open(r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\scraped_data\data_collected.csv", "r",encoding="UTF-8").readlines()
+    f = open(r"6_new_survey_data/scraped_data/data_collected.csv", "r",encoding="UTF-8").readlines()
     for line in f:
         line = line.strip().replace("\n", "")
         print(line)
         print("in writing part")
         degree_specification = mapping(line)
-        with open(r"C:\Users\krkc6\PycharmProjects\jobdescription\6_new_survey_data\matched_education_files/" + job_title_cleaned, mode='a',encoding='utf-8') as employee_file:
+        with open(r"6_new_survey_data/matched_education_files/" + job_title_cleaned, mode='a',encoding='utf-8') as employee_file:
             employee_file.write(job_title_cleaned)
             employee_file.write(" | ")
             employee_file.write(education)
